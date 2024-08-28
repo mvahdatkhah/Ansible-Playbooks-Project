@@ -118,7 +118,7 @@ ansible-vault edit vault.yml
 4. ▶️ Run the Playbook: Use the following command to execute the playbook:
 
 ```bash
-ansible-playbook -i hosts Nginx_Up_and_Running.yml -e vault.yml --ask-vault-pass
+ansible-playbook -i inventory/hosts Nginx_Up_and_Running.yml -e vault.yml --ask-vault-pass
 ```
 
 This will run the playbook on all the servers listed in the hosts file under the nginx_servers group.
