@@ -59,6 +59,7 @@ server1.example.com
 server2.example.com
 ```
 3. 🔐 Creating New Encrypted Files
+
 To create a new file encrypted with Vault, use the ansible-vault create command. Pass in the name of the file you wish to create. For example, to create an encrypted YAML file called vault.yml to store sensitive variables, you could type:
 ```bash
 ansible-vault create vault.yml
