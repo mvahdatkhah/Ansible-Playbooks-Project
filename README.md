@@ -1,91 +1,85 @@
 
-# 🚀 Ansible Playbooks Project
+# 🚀 Ansible Nginx Server Check Playbook
 
-This repository contains a collection of Ansible playbooks designed to automate various infrastructure tasks. The playbooks are organized into different branches, each focusing on a specific use case or environment.
+This Ansible playbook is designed to perform a series of checks on an Nginx server to ensure that it is running correctly, configured properly, and serving content as expected. The playbook covers tasks like checking if Nginx is listening on the correct ports, verifying configuration syntax, and ensuring that Nginx is enabled and running.
 
-## 📑 Table of Contents
+## 🛠️ Prerequisites
 
-- [🌳 Branches](#branches)
-- [🚀 Getting Started](#getting-started)
-- [🛠 Prerequisites](#prerequisites)
-- [📦 Usage](#usage)
-- [🤝 Contributing](#contributing)
-- [📜 License](#license)
+Before running this playbook, ensure the following prerequisites are met:
 
-## 🌳 Branches
+1. 🔧 Ansible Installed: Ansible should be installed on your local machine or control node.
+2. 🔑 SSH Access: Ensure you have SSH access to the target server(s) where Nginx is installed.
+3. 🔐 Sudo Privileges: The user running this playbook should have sudo privileges on the target server(s).
+4. 🌐 Nginx Installed: Nginx should already be installed on the target server(s).
 
-### `main`
-The `main` branch contains the stable version of all playbooks. This is the branch that you should use for production environments.
+## 📋 Playbook Tasks Overview
+### 1. 🔍 Verify Nginx is Listening on Ports 443 and 80
 
-### `development`
-The `development` branch is used for testing and developing new playbooks. This branch may contain unstable or experimental features. Contributions and new features are first merged into this branch before being pushed to `main`.
+- Commands:
+  - **`ss -tulpen | grep :443`**
+  - **`ss -tulpen | grep :80`**
 
-### `staging`
-The `staging` branch is a pre-production environment where playbooks from the `development` branch are tested before being merged into `main`. This branch is intended to mimic the production environment as closely as possible.
+### 2. 🛠️ Check Nginx Configuration Syntax
+- Command: `nginx -t`
+- Purpose: Validates the Nginx configuration syntax. If the configuration is invalid, the task will fail.
 
-### `feature/<feature-name>`
-Feature branches are created for developing new features or playbooks. Once a feature is complete, it will be merged into the `development` branch.
+### 3. ✅ Ensure Nginx is Active
+- Command: systemctl is-active nginx
+- Purpose: Checks if the Nginx service is currently active (running).
 
-### `hotfix/<hotfix-name>`
-Hotfix branches are created for urgent fixes in the `main` branch. These changes are directly merged into `main` and then backported to other branches if necessary.
+### 4. 🕔 Ensure Nginx is Enabled at Boot
+- Command: systemctl is-enabled nginx
+- Purpose: Verifies that Nginx is set to start on system boot.
 
-## 🚀 Getting Started
+### 5. ⏱️ Check Server Uptime
+- Command: uptime
+- Purpose: Retrieves the uptime of the server.
 
-To get started with this project, clone the repository and check out the branch that corresponds to the environment or use case you are working on.
+### 6. 🧩 Ensure Nginx Processes Are Running
+- Command: ps aux | grep [n]ginx
+- Purpose: Ensures that the Nginx processes are running.
 
-```bash
-git clone https://github.com/yourusername/ansible-playbooks.git
-cd ansible-playbooks
-git checkout <branch-name>
+### 7. 🔐 Optional - Check SSL/TLS Certificate Status
+- Command: **`openssl x509 -in /etc/nginx/ssl/fullchain.crt -text -noout | grep 'Not After'`**
+- Purpose: Checks the expiration date of the SSL/TLS certificate (optional).
+
+## 🚀 How to Run the Playbook
+1. 📥 Clone the Repository:
+```bahs
+git clone https://github.com/your-repo/nginx-check-playbook.git
+cd nginx-check-playbook
 ```
 
-## 🛠 Prerequisites
+2. 📝 Configure the Inventory: Create an inventory file (hosts) that lists the target servers where you want to run the playbook.
 
-Before running the playbooks, make sure you have the following installed:
-
-- Ansible >= 2.9
-- Python >= 3.6
-- Necessary Ansible collections and roles (see `requirements.yml`)
-
-To install the required Ansible collections and roles:
-
+Example hosts file:
 ```bash
-ansible-galaxy install -r requirements.yml
+[nginx_servers]
+server1.example.com
+server2.example.com
 ```
 
-## 📦 Usage
+3. ▶️ Run the Playbook: Use the following command to execute the playbook:
+ansible-playbook -i hosts Nginx_Up_and_Running.yml
 
-Run a playbook with the following command:
+This will run the playbook on all the servers listed in the hosts file under the nginx_servers group.
 
-```bash
-ansible-playbook -i inventory/your_inventory_file playbook.yml
-```
+## 📊 Playbook Output
+The playbook will output debug information at each step, including:
 
-For example, to run the playbook in the `main` branch:
+- 📡 Ports Nginx is listening on.
+- 🛠️ Configuration syntax validation results.
+- ✅ Nginx service status (active and enabled).
+- ⏱️ Server uptime.
+- 🧩 Running Nginx processes.
+- 🔐 SSL/TLS certificate expiration date (if applicable).
 
-```bash
-ansible-playbook -i inventory/production site.yml
-```
+## 🛠️ Troubleshooting
+If any tasks fail:
 
-### Environment-specific Playbooks
-
-- **Production**: Use the playbooks in the `main` branch.
-- **Development**: Use the playbooks in the `development` branch.
-- **Staging**: Use the playbooks in the `staging` branch.
+- 📝 Configuration Errors: Check the Nginx configuration using nginx -t and fix any syntax issues.
+- ⚙️ Service Issues: Ensure Nginx is installed and running using system commands like systemctl status nginx.
+- 🌐 Port Issues: Ensure that the correct ports are open and that Nginx is configured to listen on them.
 
 ## 🤝 Contributing
-
-Contributions are welcome! To contribute to this project:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix (`git checkout -b feature/new-feature`).
-3. Commit your changes.
-4. Push your branch and create a pull request.
-
-Please ensure that your playbooks follow the best practices and pass linting checks (`ansible-lint`).
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-
+Feel free to submit issues, fork the repository, and send pull requests. Contributions are welcome! 🎉
