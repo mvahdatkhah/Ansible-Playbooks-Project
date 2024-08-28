@@ -1,6 +1,6 @@
 ---
 - hosts:
-   - web_servers
+   - nginx_servers
   
   vars:
     - ansible_user: ansible  # ssh login user
