@@ -63,7 +63,7 @@
   when: nginx_processes.stdout != ""
 
 - name: Optional - Check SSL/TLS Certificate Status
-  ansible.builtin.shell: "sudo openssl x509 -in /etc/nginx/ssl/fullchain.crt -text -noout | grep 'Not After'"
+  ansible.builtin.shell: "sudo openssl x509 -in /etc/nginx/ssl/cert.cr -text -noout | grep 'Not After'"
   register: ssl_cert_status
   ignore_errors: yes
 - debug:
