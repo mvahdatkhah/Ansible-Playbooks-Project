@@ -20,23 +20,23 @@ Before running this playbook, ensure the following prerequisites are met:
   - **`ss -tulpen | grep :80`**
 
 ### 2. 🛠️ Check Nginx Configuration Syntax
-- Command: `nginx -t`
+- Command: **`nginx -t`**
 - Purpose: Validates the Nginx configuration syntax. If the configuration is invalid, the task will fail.
 
 ### 3. ✅ Ensure Nginx is Active
-- Command: systemctl is-active nginx
+- Command: **`systemctl is-active nginx`**
 - Purpose: Checks if the Nginx service is currently active (running).
 
 ### 4. 🕔 Ensure Nginx is Enabled at Boot
-- Command: systemctl is-enabled nginx
+- Command: **`systemctl is-enabled nginx`**
 - Purpose: Verifies that Nginx is set to start on system boot.
 
 ### 5. ⏱️ Check Server Uptime
-- Command: uptime
+- Command: **`uptime`**
 - Purpose: Retrieves the uptime of the server.
 
 ### 6. 🧩 Ensure Nginx Processes Are Running
-- Command: ps aux | grep [n]ginx
+- Command: **`ps aux | grep [n]ginx`**
 - Purpose: Ensures that the Nginx processes are running.
 
 ### 7. 🔐 Optional - Check SSL/TLS Certificate Status
