@@ -58,8 +58,63 @@ Example hosts file:
 server1.example.com
 server2.example.com
 ```
+3. 🔐 Creating New Encrypted Files
+To create a new file encrypted with Vault, use the ansible-vault create command. Pass in the name of the file you wish to create. For example, to create an encrypted YAML file called vault.yml to store sensitive variables, you could type:
+```bash
+ansible-vault create vault.yml
+```
+You will be prompted to enter and confirm a password:
 
-3. ▶️ Run the Playbook: Use the following command to execute the playbook:
+```bash
+Output
+New Vault password: 
+Confirm New Vault password:
+```
+
+When you have confirmed your password, Ansible will immediately open an editing window where you can enter your desired contents.
+
+To test the encryption function, enter some test text:
+```bash
+vault.yml
+Secret information
+```
+
+Ansible will encrypt the contents when you close the file. If you check the file, instead of seeing the words you typed, you will see an encrypted block:
+```bash
+cat vault.yml
+Output
+$ANSIBLE_VAULT;1.1;AES256
+65316332393532313030636134643235316439336133363531303838376235376635373430336333
+3963353630373161356638376361646338353763363434360a363138376163666265336433633664
+30336233323664306434626363643731626536643833336638356661396364313666366231616261
+3764656365313263620a383666383233626665376364323062393462373266663066366536306163
+31643731343666353761633563633634326139396230313734333034653238303166
+```
+We can see some header information that Ansible uses to know how to handle the file, followed by the encrypted contents, which display as numbers.
+
+### Viewing Encrypted Files
+Sometimes, you may need to reference the contents of a vault-encrypted file without needing to edit it or write it to the filesystem unencrypted. The ansible-vault view command feeds the contents of a file to standard out. By default, this means that the contents are displayed in the terminal.
+
+Pass the vault encrypted file to the command:
+```bash
+ansible-vault view vault.yml
+```
+You will be asked for the file’s password. After entering it successfully, the contents will be displayed:
+
+```bash
+Output
+Vault password:
+Secret information
+```
+As you can see, the password prompt is mixed into the output of file contents. Keep this in mind when using ansible-vault view in automated processes.
+
+### Editing Encrypted Files
+When you need to edit an encrypted file, use the ansible-vault edit command:
+
+```bash
+ansible-vault edit vault.yml
+```
+4. ▶️ Run the Playbook: Use the following command to execute the playbook:
 ansible-playbook -i hosts Nginx_Up_and_Running.yml
 
 This will run the playbook on all the servers listed in the hosts file under the nginx_servers group.
