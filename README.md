@@ -116,7 +116,10 @@ When you need to edit an encrypted file, use the ansible-vault edit command:
 ansible-vault edit vault.yml
 ```
 4. ▶️ Run the Playbook: Use the following command to execute the playbook:
-ansible-playbook -i hosts Nginx_Up_and_Running.yml
+
+```bash
+ansible-playbook -i hosts Nginx_Up_and_Running.yml -e vault.yml --ask-vault-pass
+```
 
 This will run the playbook on all the servers listed in the hosts file under the nginx_servers group.
 
