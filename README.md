@@ -46,8 +46,8 @@ Before running this playbook, ensure the following prerequisites are met:
 ## 🚀 How to Run the Playbook
 1. 📥 Clone the Repository:
 ```bahs
-git clone https://github.com/your-repo/nginx-check-playbook.git
-cd nginx-check-playbook
+git clone --branch NginxUpandRunning https://github.com/mvahdatkhah/Ansible-Playbooks-Project.git
+cd provision
 ```
 
 2. 📝 Configure the Inventory: Create an inventory file (hosts) that lists the target servers where you want to run the playbook.
