@@ -1,0 +1,181 @@
+---
+- name: ------ Filter and return only selected facts ------
+  ansible.builtin.setup:
+    filter:
+      - 'ansible_distribution_file_variety'
+      - 'ansible_os_family'
+      - 'ansible_distribution'
+  tags: setup
+
+- name: ------ Uninstall RedHat docker packages ------
+  yum:
+    name:
+      - docker
+      - docker-ce
+      - docker-ce-cli
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-engine
+    state: "absent"
+  async: 7500
+  poll: 5
+  when: ansible_distribution_file_variety == "RedHat"
+  tags: uninstall_docker
+
+- name: ------ Uninstall Debian docker packages ------
+  apt:
+    name:
+      - docker
+      - docker-doc
+      - docker-compose
+      - podman-docker
+      - containerd
+      - runc
+    state: "absent"
+  async: 7500
+  poll: 5
+  when: ansible_os_family == "Debian"
+  tags: uninstall_docker
+
+- name: ------ Remove file (delete file) ------
+  file:
+    path:
+      - /var/lib/docker
+      - /var/lib/containerd
+      - /etc/docker
+      - /etc/apt/keyrings/docker.gpg
+      - /etc/apt/sources.list.d/docker.list
+    force: true
+    state: "absent"
+  tags: docker_remove_files
+
+- name: ------ Update all packages exclude kernel package on RedHat distribution ------
+  yum:
+    name: "*"
+    state: latest
+    exclude: kernel*
+  async: 7500
+  poll: 5
+  when: ansible_distribution_file_variety == "RedHat"
+  tags: update_all_packages
+
+- name: ------ Install required system packages on RedHat distribution ------
+  yum:
+    name:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+      - python-docker-py
+    state: latest
+  async: 7500
+  poll: 5
+  when: ansible_distribution_file_variety == "RedHat"
+  tags: req_sys_packages
+
+- name: ------ Update and upgrade apt packages on Debian distribution ------
+  apt:
+    upgrade: yes
+    #update_cache: yes
+    autoremove: yes
+    cache_valid_time: 86400 #One day
+  async: 7500
+  poll: 5
+  when: ansible_os_family == "Debian"
+  tags: update_packages
+
+- name: ------ Install required system packages on Debian distribution ------
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - lsb-release
+      - curl
+      - gnupg-agent
+      - curl
+      - software-properties-common
+      - python3-pip
+      - virtualenv
+      - python3-setuptools
+    state: latest
+  async: 7500
+  poll: 5
+  when: ansible_os_family == "Debian"
+  tags: req_sys_packages
+
+- name: ------ Add Docker's official GPG key ------
+  shell: |
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+  args:
+    executable: /bin/bash
+  when: ansible_distribution == "Ubuntu"
+  tags: add_docker_gpg
+
+- name: ------ Add Docker's official GPG key ------
+  shell: |
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+  args:
+    executable: /bin/bash
+  when: ansible_distribution == "Debian"
+  tags: add_docker_gpg
+
+- name: ------ Add the repository to Apt sources on Ubuntu distribution ------
+  shell: |
+    echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update
+  args:
+    executable: /bin/bash
+  when: ansible_distribution == "Ubuntu"
+  tags: add_repo_apt
+
+- name: ------ Add the repository to Apt sources on Debian distribution ------
+  shell: |
+    echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update
+  args:
+    executable: /bin/bash
+  when: ansible_distribution == "Debian"
+  tags: add_repo_apt
+
+- name: ------ Install docker engine on Debian OS family ------
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: latest
+  async: 7500
+  poll: 5
+  when: ansible_os_family == "Debian"
+  tags: install_docker_engine
+
+- name: ------ Set mydistribution on RedHat distribution ------
+  ansible.builtin.set_fact:
+    mydistribution: "{{ 'rhel' if (ansible_distribution == 'Red Hat Enterprise Linux') else (ansible_distribution | lower) }}"
+  when: ansible_distribution_file_variety == "RedHat"
+  tags: set_mydistribution
+
+- name: ------ Add signing key on RedHat distribution ------
+  ansible.builtin.rpm_key:
+    key: "https://download.docker.com/linux/{{ mydistribution }}/gpg"
+    state: present
+  when: ansible_distribution_file_variety == "RedHat"
+  tags: add_sign_key
+
+- name: ------ Add repository into repo.d list on RedHat distribution ------
+  ansible.builtin.yum_repository:
+    name: docker
+    description: docker repository
+    baseurl: "https://download.docker.com/linux/{{ mydistribution }}/$releasever/$basearch/stable"
+    enabled: "True"
+    gpgcheck: "True"
+    gpgkey: "https://download.docker.com/linux/{{ mydistribution }}/gpg"
