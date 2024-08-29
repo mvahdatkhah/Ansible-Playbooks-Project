@@ -47,7 +47,7 @@ Before running this playbook, ensure the following prerequisites are met:
 1. 📥 Clone the Repository:
 ```bahs
 git clone --branch NginxUpandRunning https://github.com/mvahdatkhah/Ansible-Playbooks-Project.git
-cd provision
+cd nginx
 ```
 
 2. 📝 Configure the Inventory: Create an inventory file (hosts) that lists the target servers where you want to run the playbook.
