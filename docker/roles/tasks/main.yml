@@ -179,3 +179,90 @@
     enabled: "True"
     gpgcheck: "True"
     gpgkey: "https://download.docker.com/linux/{{ mydistribution }}/gpg"
+  when: ansible_distribution_file_variety == "RedHat"
+  tags: add_repo
+
+- name: ------ Install Docker on RedHat distribution ------
+  ansible.builtin.yum:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: latest
+    update_cache: "True"
+  async: 7500
+  poll: 5
+  when: ansible_distribution_file_variety == "RedHat"
+  tags: install_docker
+
+- name: ------ Install docker-compose ------
+  get_url:
+    url: https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: 'u+x,g+x'
+  tags: docker_compose
+
+- name: ------ Set execution permission ------
+  file:
+    dest: /usr/local/bin/docker-compose
+    mode: 'a+x'
+  tags: sym_link
+
+- name: ------ Enable & start docker service ------
+  service:
+    name: docker
+    enabled: yes
+    state: started
+  tags: enable_start_docker
+
+- name: ------ Uninstall docker-py, docker and docker-compose Modules, required by ansible ------
+  pip:
+    name:
+      - docker-py
+      - docker
+      - docker-compose
+    state: absent
+  when: ansible_os_family == "Debian"
+  tags: install_pip
+
+- name: ------ Install the Docker module for Python, required by ansible ------
+  pip:
+    name: docker-py
+    state: latest
+  when: ansible_os_family == "Debian"
+  tags: install_pip
+
+- name: ------ Adding existing user to group sudo ------
+  user:
+    name: ansible
+    groups: docker
+    append: yes
+  tags: usermod
+
+- name: ------ Pull docker image ------
+  docker_image:
+    name: quay.io/prometheus/node-exporter:latest
+    source: pull
+  tags: docker_image_node-exporter
+
+- name: ------ Check is node exporter run ------
+  shell: command sudo docker ps -f 'status=exited' > /dev/null 2>&1
+  register: is_container_exited
+  ignore_errors: yes
+  tags: docker_compose
+
+- name: ------ Copy and Execute the run-node-exporter ------
+  script: run-node-exporter.sh
+  when: is_container_exited != 0
+  tags: run_node_exporter
+
+- name: ------ Copy and Execute the docker_version ------
+  script: docker_version.sh
+  register: results
+  tags: docker_version
+
+- name: ------ Get docker version info ------
+  debug:
+    var: results.stdout_lines
+  tags: docker_version
+...
