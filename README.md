@@ -1,52 +1,61 @@
+# 🚀 Ansible Playbook for Docker Setup and Configuration
 
-# 🚀 Ansible Nginx Server Check Playbook
+This Ansible playbook automates the process of uninstalling existing Docker packages, installing required system packages, and configuring Docker on both RedHat and Debian-based systems. It also manages Docker services, installs Python Docker modules, pulls Docker images, and handles related tasks like user management and file operations.
 
-This Ansible playbook is designed to perform a series of checks on an Nginx server to ensure that it is running correctly, configured properly, and serving content as expected. The playbook covers tasks like checking if Nginx is listening on the correct ports, verifying configuration syntax, and ensuring that Nginx is enabled and running.
+## 📋 Prerequisites
 
-## 🛠️ Prerequisites
+Before running this playbook, ensure the following:
 
-Before running this playbook, ensure the following prerequisites are met:
+- ✅ **Ansible** is installed on your control machine.
+- 🔑 Proper **SSH access** and **sudo privileges** on the target machines.
+- 🐍 **Python** and necessary packages are installed on the managed nodes.
 
-1. 🔧 Ansible Installed: Ansible should be installed on your local machine or control node.
-2. 🔑 SSH Access: Ensure you have SSH access to the target server(s) where Nginx is installed.
-3. 🔐 Sudo Privileges: The user running this playbook should have sudo privileges on the target server(s).
-4. 🌐 Nginx Installed: Nginx should already be installed on the target server(s).
+## 📂 Playbook Structure
 
-## 📋 Playbook Tasks Overview
-### 1. 🔍 Verify Nginx is Listening on Ports 443 and 80
+### 1. 🛠️ Filter and Return Selected Facts
+- Gathers specific system information like `ansible_distribution`, `ansible_os_family`, and `ansible_distribution_file_variety`.
 
-- Commands:
-  - **`ss -tulpen | grep :443`**
-  - **`ss -tulpen | grep :80`**
+### 2. ❌ Uninstall Docker Packages
+- **RedHat Systems**: Uninstalls Docker-related packages using `yum`.
+- **Debian Systems**: Uninstalls Docker-related packages using `apt`.
 
-### 2. 🛠️ Check Nginx Configuration Syntax
-- Command: **`nginx -t`**
-- Purpose: Validates the Nginx configuration syntax. If the configuration is invalid, the task will fail.
+### 3. 🗑️ Remove Docker-Related Files
+- Deletes Docker-related directories and files from the system.
 
-### 3. ✅ Ensure Nginx is Active
-- Command: **`systemctl is-active nginx`**
-- Purpose: Checks if the Nginx service is currently active (running).
+### 4. 🔄 Update System Packages
+- **RedHat Systems**: Updates all packages excluding the kernel.
+- **Debian Systems**: Updates and upgrades all packages.
 
-### 4. 🕔 Ensure Nginx is Enabled at Boot
-- Command: **`systemctl is-enabled nginx`**
-- Purpose: Verifies that Nginx is set to start on system boot.
+### 5. 🧰 Install Required System Packages
+- **RedHat Systems**: Installs packages like `yum-utils`, `lvm2`, `python-docker-py`, etc.
+- **Debian Systems**: Installs packages like `ca-certificates`, `curl`, `python3-pip`, etc.
 
-### 5. ⏱️ Check Server Uptime
-- Command: **`uptime`**
-- Purpose: Retrieves the uptime of the server.
+### 6. 🔑 Add Docker GPG Key and Repository
+- Adds Docker's official GPG key and repository to both Ubuntu and Debian distributions.
 
-### 6. 🧩 Ensure Nginx Processes Are Running
-- Command: **`ps aux | grep [n]ginx`**
-- Purpose: Ensures that the Nginx processes are running.
+### 7. 🐳 Install Docker Engine
+- Installs Docker engine on both Debian and RedHat-based distributions.
 
-### 7. 🔐 Optional - Check SSL/TLS Certificate Status
-- Command: **`openssl x509 -in /etc/nginx/ssl/fullchain.crt -text -noout | grep 'Not After'`**
-- Purpose: Checks the expiration date of the SSL/TLS certificate (optional).
+### 8. ⚙️ Configure Docker Services
+- Enables and starts the Docker service on the system.
+
+### 9. 🐍 Manage Python Docker Modules
+- Uninstalls old Python Docker modules and installs the latest version as required by Ansible.
+
+### 10. 👤 User Management
+- Adds the `ansible` user to the Docker group.
+
+### 11. 📦 Docker Image Management
+- Pulls the Prometheus Node Exporter Docker image and checks its status. If not running, the playbook executes the `run-node-exporter.sh` script.
+
+### 12. 🛠️ Debugging and Verification
+- Runs a script to check the Docker version and outputs the result.
+
 
 ## 🚀 How to Run the Playbook
 1. 📥 Clone the Repository:
 ```bahs
-git clone --branch NginxUpandRunning https://github.com/mvahdatkhah/Ansible-Playbooks-Project.git
+git clone --branch DockerUpandRunning https://github.com/mvahdatkhah/Ansible-Playbooks-Project.git
 cd provision
 ```
 
@@ -54,7 +63,7 @@ cd provision
 
 Example hosts file:
 ```bash
-[nginx_servers]
+[web_servers]
 server1.example.com
 server2.example.com
 ```
@@ -118,27 +127,26 @@ ansible-vault edit vault.yml
 4. ▶️ Run the Playbook: Use the following command to execute the playbook:
 
 ```bash
-ansible-playbook -i inventory/hosts Nginx_Up_and_Running.yml -e vault.yml --ask-vault-pass
+ansible-playbook -i inventory/hosts docky.yml -e vault.yml --ask-vault-pass
 ```
 
-This will run the playbook on all the servers listed in the hosts file under the nginx_servers group.
+This will run the playbook on all the servers listed in the hosts file under the web_servers group.
+`
 
-## 📊 Playbook Output
-The playbook will output debug information at each step, including:
+### 🏷️ Tags
 
-- 📡 Ports Nginx is listening on.
-- 🛠️ Configuration syntax validation results.
-- ✅ Nginx service status (active and enabled).
-- ⏱️ Server uptime.
-- 🧩 Running Nginx processes.
-- 🔐 SSL/TLS certificate expiration date (if applicable).
-
-## 🛠️ Troubleshooting
-If any tasks fail:
-
-- 📝 Configuration Errors: Check the Nginx configuration using nginx -t and fix any syntax issues.
-- ⚙️ Service Issues: Ensure Nginx is installed and running using system commands like systemctl status nginx.
-- 🌐 Port Issues: Ensure that the correct ports are open and that Nginx is configured to listen on them.
-
-## 🤝 Contributing
-Feel free to submit issues, fork the repository, and send pull requests. Contributions are welcome! 🎉
+- **setup**: Gathers system facts.
+- **uninstall_docker**: Uninstalls Docker packages.
+- **docker_remove_files**: Removes Docker-related files.
+- **update_all_packages**: Updates all packages on RedHat systems.
+- **req_sys_packages**: Installs required system packages.
+- **add_docker_gpg**: Adds Docker's GPG key.
+- **add_repo_apt**: Adds the Docker repository.
+- **install_docker_engine**: Installs Docker engine.
+- **docker_compose**: Installs Docker Compose.
+- **enable_start_docker**: Enables and starts Docker service.
+- **install_pip**: Installs Python Docker modules.
+- **usermod**: Manages the ansible user.
+- **docker_image_node-exporter**: Pulls the Prometheus Node Exporter Docker image.
+- **docker_version**: Outputs Docker version information.
+- **run_node_exporter**: Runs the Node Exporter container.
