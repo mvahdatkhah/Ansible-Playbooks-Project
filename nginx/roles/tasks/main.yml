@@ -3,13 +3,17 @@
   ansible.builtin.shell: "ss -tulpen | grep :443"
   register: nginx_ports
 - debug:
-    msg: "Nginx Listening Ports: {{ nginx_ports.stdout_lines }}"
-
+    msg: >
+      Nginx Listening on Port: 443
+  when: nginx_ports.stdout != ""
+    
 - name: Verify Nginx is Listening on Port
   ansible.builtin.shell: "ss -tulpen | grep :80"
   register: nginx_ports
 - debug:
-    msg: "Nginx Listening Ports: {{ nginx_ports.stdout_lines }}"
+    msg: >
+      Nginx Listening on Port: 80
+  when: nginx_ports.stdout != ""
 
 - name: Check Nginx Configuration Syntax
   ansible.builtin.shell: "nginx -t"
@@ -62,11 +66,16 @@
       Nginx processes are up and running:
   when: nginx_processes.stdout != ""
 
+- name: Optional - Check Nginx Status Code
+  ansible.builtin.shell: "curl -LI http://localhost -o /dev/null -w '%{http_code}\n' -s"
+  register: status_code
+- debug:
+    msg: "Nginx Status Code: {{ status_code.stdout }}"
+
 - name: Optional - Check SSL/TLS Certificate Status
-  ansible.builtin.shell: "sudo openssl x509 -in /etc/nginx/ssl/cert.cr -text -noout | grep 'Not After'"
+  ansible.builtin.shell: "sudo openssl x509 -in /etc/nginx/ssl/fullchain.crt -text -noout | grep 'Not After'"
   register: ssl_cert_status
   ignore_errors: yes
 - debug:
     msg: "SSL Certificate Expiry: {{ ssl_cert_status.stdout }}"
 ...
-
