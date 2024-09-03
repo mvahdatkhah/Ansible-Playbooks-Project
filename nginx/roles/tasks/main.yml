@@ -39,8 +39,8 @@
     msg: "Nginx Enabled Status: {{ nginx_enabled.stdout }}"
 
 - name: Check Server Uptime
-  ansible.builtin.command:
-    cmd: uptime
+  ansible.builtin.shell: |
+    echo $(uptime) | sed 's/^.\+up\ \+\([^,]*\).*/\1/g'
   register: server_uptime
 - debug:
     msg: "Server Uptime: {{ server_uptime.stdout }}"
